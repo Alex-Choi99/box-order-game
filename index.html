@@ -12,11 +12,14 @@
         </header>
         <main>
             <div class="controls">
-                <label for="buttonCount">How many buttons to create?</label>
-                <br>
-                <input type="number" id="buttonCount" name="buttonCount" min="3" max="7" required>
-                <button id="goButton">Go!</button>
-                <span id="errorMessage" class="error-message"></span>
+                <form id="gameForm" class="controls">
+                    <label for="buttonCount">How many buttons to create?</label>
+                    <br>
+                    <input type="number" id="buttonCount" name="buttonCount" min="3" max="7" required>
+                    <button id="goButton">Go!</button>
+                    <span id="errorMessage" class="error-message"></span>
+                    <div id="gameMessage" class="game-message"></div>
+                </form>
             </div>
             <div id="buttonContainer" class="button-container">
                 
@@ -25,6 +28,6 @@
         <footer>
             <p>Alex Choi - A01323994</p>
         </footer>
-        <script src="js/script.js"></script>
+        <script src="js/script.js" type="module" defer></script>
     </body>
 </html>

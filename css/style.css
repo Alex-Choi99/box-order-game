@@ -7,3 +7,135 @@
     width: 10em;
 }
 
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    min-height: 100vh;
+    background-color: #f0f4f8;
+    color: #334155;
+}
+
+header {
+    background-color: aquamarine;
+    color: #333;
+    padding: 10px 0;
+    text-align: center;
+}
+
+main {
+    text-align: center;
+
+}
+
+footer {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    bottom: 0;
+    position: fixed;
+    font-size: 14px;
+    color: #777;
+    background-color: aquamarine;
+    width: 100%;
+}
+
+.controls {
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+#buttonCount {
+    width: 50px;
+    padding: 5px;
+    margin-right: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+}
+
+#goButton {
+    background-color: #2563eb;
+    width: 50px;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+#goButton:hover {
+    background-color: #1d4ed8;
+}
+
+.error-message {
+    color: #ef4444;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.game-message {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    min-height: 1.5rem;
+}
+
+#buttonContainer {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.game-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 5em;
+    width: 10em;
+    margin: 0.5rem;
+    border: 2px solid #111827;
+    border-radius: 0.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+}
+
+.game-button.scrambling {
+    position: absolute;
+    transition: left 2s ease-in-out, top 2s ease-in-out;
+}
+
+.game-button.hidden-value {
+    color: transparent;
+    cursor: pointer;
+}
+
+.game-button.correct {
+    background-color: #22c55e !important;
+    border-color: #16a34a !important;
+}
+
+.game-button.incorrect {
+    background-color: #ef4444 !important;
+    border-color: #dc2626 !important;
+}
+
+#gameMessage.wrong-order {
+    color: #ef4444;
+}
+
+#gameMessage.correct-order {
+    color: #22c55e;
+}
