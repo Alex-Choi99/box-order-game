@@ -1,89 +1,156 @@
-import { CORRECT_ORDER_MESSAGE, WRONG_ORDER_MESSAGE, DISPLAY_TIME } from "../lang/messages/en/user.js";
+/**
+ * Author: Alex Choi
+ * Student ID: A01323994
+ */
 
+import { messages } from '../lang/messages/en/user.js';
+
+const pauseTimeMultiplier = 1000;
+const scrambleInterval = 2000;
+
+/**
+ * A class representing a button in the game.
+ */
 class Button {
     /**
-     * A constructor to create a button element with a random color and a number
-     * @param {*} color | The color of the button in hexadecimal format
-     * @param {*} number | The number to be displayed on the button
+     * A constructor for a button object.
+     * @param {*} value | The value associated with the button.
+     * @param {*} color | The color of the button.
      */
-    constructor(color, number) {
+    constructor(value, color) {
+        this.value = value;
         this.color = color;
-        this.number = number;
+        this.element = this.createButtonElement();
     }
 
     /**
-     * A private method to place the button on the screen in a random position
-     * @param {*} x | The x coordinate of the button on the screen
-     * @param {*} y | The y coordinate of the button on the screen
+     * Creates the button element.
+     * @returns {HTMLElement} | The button element.
      */
-    scramble(x, y) {
-        this.buttonElement.style.position = "absolute";
-        this.buttonElement.style.left = `${x}px`;
-        this.buttonElement.style.top = `${y}px`;
+    createButtonElement() {
+        const button = document.createElement('div');
+        button.textContent = this.value;
+        button.style.backgroundColor = this.color;
+        button.dataset.value = this.value;
+        button.classList.add('color-button');
+        return button;
     }
 
     /**
-     * A private method to hide the number on the button
+     * Hides the button's value by adding the 'hidden-value' class to make the text color transparent.
      */
-    hideNumber(){
-        this.buttonElement.textContent = "";
+    hideValue() {
+        this.element.classList.add('hidden-value');
     }
 
     /**
-     * A private method to show the number on the button
+     * Shows the button's value by removing the 'hidden-value' class.
      */
-    showNumber(){
-        this.buttonElement.textContent = this.number;
-    }
-
-    /**
-     * A private method to make the button clickable
-     * @param {*} callback | The callback function to be called when the button is clicked
-     */
-    makeClickable(callback) {
-        this.buttonElement.addEventListener("click", () => {
-            callback(this);
-        });
-    }
-
-    /**
-     * A private method to make the button unclickable
-     */
-    makeUnclickable() {
-        this.buttonElement.removeEventListener("click", () => {});
+    showValue() {
+        this.element.classList.remove('hidden-value');
     }
 }
 
-class ButtonContainer {
+/**
+ * A class to manage the button container.
+ */
+class ButtonContainerManager {
     /**
-     * The constructor for the ButtonContainer class
-     * @param {*} buttons | An array to hold the button objects
-     * @param {*} numButtons | The number of buttons to create
+     * A constructor for the button container manager.
+     * @param {HTMLElement} containerElement | The container element to manage.
      */
-    constructor(buttons, numButtons) {
-        this.buttons = buttons;
-        this.numButtons = numButtons;
+    constructor(containerElement) {
+        this.container = containerElement;
+        this.buttons = [];
+        this.inputNumber = 0;
     }
 
     /**
-     * A private method to create button elements and add them to the DOM
-     * @param {*} n | The number of buttons to create
+     * Creates buttons and appends them to the container.
      */
-    createButtons(n) {
-        const container = document.getElementById("buttonContainer");
+    createButtons() {
+        this.removeAllButtons();
+        const colors = [];
 
-        for(let i = 0; i < n; i++){
-            const color = this.getRandomColor();
-            const button = new Button(color, i + 1);
+        for (let i = 0; i < this.inputNumber; i++) {
+            let color;
+            color = this.getRandomColor();
+            colors.push(color);
+        }
 
-            container.appendChild(button.buttonElement);
+        for (let i = 0; i < this.inputNumber; i++) {
+            const button = new Button(i + 1, colors[i]);
             this.buttons.push(button);
+        }
+
+        for (const button of this.buttons) {
+            this.container.appendChild(button.element);
+            button.element.classList.add('color-button');
+            button.element.style.position = 'relative';
+            button.element.style.display = 'inline-block';
+            button.element.style.margin = '5px';
+            button.element.style.top = '50%';
+            button.element.style.transform = 'translateY(-50%)';
         }
     }
 
     /**
-     * A private method to get a random color in hexadecimal format
-     * @returns {string} | The random color in hexadecimal format
+     * Scrambles the buttons in the container. It reads the container's dimensions to ensure buttons stay within bounds.
+     * The game scrambles buttons n times in random positions within the container with a 2 second interval.
+     * Each scramble checks container dimensions to ensure buttons stay within bounds.
+     * When scramble starts, hide number values on buttons.
+     * After scrambling is complete, the buttons become clickable without number values shown.
+     */
+    scrambleButtons() {
+        this.buttons.forEach(button => button.hideValue());
+
+        for (let i = 0; i < this.buttons.length; i++) {
+            setTimeout(() => {
+                const containerRect = this.container.getBoundingClientRect();
+                const buttonRect = this.buttons[i].element.getBoundingClientRect();
+
+                const maxX = containerRect.width - buttonRect.width;
+                const maxY = containerRect.height - buttonRect.height;
+
+                this.buttons.forEach(button => {
+                    const randomX = Math.random() * maxX;
+                    const randomY = Math.random() * maxY;
+                    button.element.style.position = 'absolute';
+                    button.element.style.left = `${randomX}px`;
+                    button.element.style.top = `${randomY}px`;
+                });
+
+            }, scrambleInterval * (i + 1));
+        }
+
+        // const scramble = (n) => {
+        //     if (n === 0) {
+        //         return;
+        //     }
+
+        //     const containerRect = this.container.getBoundingClientRect();
+        //     const buttonRect = this.buttons[0].element.getBoundingClientRect();
+
+        //     const maxX = containerRect.width - buttonRect.width;
+        //     const maxY = containerRect.height - buttonRect.height;
+
+        //     this.buttons.forEach(button => {
+        //         const randomX = Math.random() * maxX;
+        //         const randomY = Math.random() * maxY;
+        //         button.element.style.position = 'absolute';
+        //         button.element.style.left = `${randomX}px`;
+        //         button.element.style.top = `${randomY}px`;
+        //     });
+
+        //     setTimeout(() => scramble(n - 1), scrambleInterval);
+        // };
+
+        // scramble(this.inputNumber);
+    }
+
+    /**
+     * Generates a random color in hexadecimal format.
+     * @returns {string} | A random color in hexadecimal format.
      */
     getRandomColor() {
         const letters = '0123456789ABCDEF';
@@ -97,115 +164,94 @@ class ButtonContainer {
     }
 
     /**
-     * A private method to scramble the buttons on the screen
-     * @param {*} containerSizeX | The width of the container
-     * @param {*} containerSizeY | The height of the container
+     * Removes all buttons from the container.
      */
-    scrambleButtons(containerSizeX, containerSizeY) {
-        for (let button of this.buttons) {
-            const x = Math.floor(Math.random() * (containerSizeX - 100));
-            const y = Math.floor(Math.random() * (containerSizeY - 50));
-            button.scramble(x, y);
-        }
-    }
-
-    /**
-     * A private method to remove all buttons from the DOM
-     */
-    removeButtons() {
-        const container = document.getElementById("buttonContainer");
-        container.innerHTML = "";
+    removeAllButtons() {
         this.buttons = [];
+        this.container.innerHTML = '';
     }
 }
 
+/**
+ * A class to manage the game logic.
+ */
 class Game {
     /**
-     * The constructor for the Game class
-     * @param {*} numButtons | The number of buttons to create
+     * A constructor for the game.
+     * @param {number} n | The number of buttons to create.
      */
-    constructor(numButtons) {
-        this.buttonContainer = new ButtonContainer([], numButtons);
-        this.clickOrder = [];
-        this.numClicks = 1;
+    constructor(n) {
+        this.buttonCountInput = document.getElementById('buttonCount');
+        this.goButton = document.getElementById('goButton');
+        this.buttonContainer = document.getElementById('buttonContainer');
+        this.errorMessage = document.getElementById('errorMessage');
+        this.gameMessage = document.getElementById('gameMessage');
+        this.inputNumber = n;
+        this.buttonContainerManager = new ButtonContainerManager(this.buttonContainer);
+        this.correctOrder = [];
+        this.userClicks = [];
+
+        this.init();
     }
 
     /**
-     * A public method to start the game
+     * Initializes the game.
      */
-    start() {
-        this.buttonContainer.removeButtons();
-        this.buttonContainer.createButtons(this.buttonContainer.numButtons);
-        this.wait();
-        this.buttonContainer.scrambleButtons(window.innerWidth, window.innerHeight);
-        
+    init(){
+        this.goButton.addEventListener('click', () => this.startGame());
+        this.buttonContainer.addEventListener('click', (event) => this.handleButtonClick(event));
     }
 
     /**
-     * A public method to get the button clicked by the user
-     * @param {*} button | The button clicked by the user
+     * Starts the game.
      */
-    getUserClick(button) {
-        this.clickOrder.push(button);
-        this.numClicks++;
-    }
+    startGame() {
+        this.buttonContainerManager.removeAllButtons();
+        this.correctOrder = [];
+        this.userClicks = [];
+        gameMessage.textContent = '';
 
-    /**
-     * A private method to handle button clicks and check the order
-     */
-    end(isWin) {
-        if (isWin && this.isCorrectOrder()) {
-            alert(CORRECT_ORDER_MESSAGE);
-        } else {
-            alert(WRONG_ORDER_MESSAGE);
-        }
-    }
+        const n = parseInt(this.buttonCountInput.value, 10);
 
-    /**
-     * A private method to check if the buttons were clicked in the correct order
-     * @returns {boolean} | True if the buttons were clicked in the correct order, false otherwise
-     */
-    isCorrectOrder() {
-        for (let i = 0; i < this.clickOrder.length; i++) {
-            if (this.clickOrder[i].number !== i + 1) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * A private method to attach event listeners to the buttons
-     */
-    attachEventListeners() {
-        for (let button of this.buttonContainer.buttons) {
-            button.makeClickable(this.getUserClick.bind(this));
-        }
-    }
-
-    /**
-     * A private method to count time in milliseconds before scrambling the buttons and hiding the numbers
-     */
-    wait() {
-        
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const game = new Game();
-
-    goButton.addEventListener('click', (event) => {
-        // Prevent form submission and page reload
-        event.preventDefault();
-
-        const buttonCount = parseInt(buttonCountInput.value, 10);
-
-        // Input validation
-        if (isNaN(buttonCount) || buttonCount < 3 || buttonCount > 7) {
-            showMessage("Please enter a number between 3 and 7.", MESSAGE_BOX_LOSE_CLASS);
+        if (isNaN(n) || n < 3 || n > 7) {
+            errorMessage.textContent = 'Please enter a number between 3 and 7.';
             return;
         }
 
-        game.start(buttonCount);
-    });
+        this.buttonContainerManager.inputNumber = n;
+        errorMessage.textContent = '';
+
+        this.buttonContainerManager.createButtons();
+        this.correctOrder = this.buttonContainerManager.buttons.map(button => button.value);
+        const pauseTime = n * pauseTimeMultiplier;
+        setTimeout(() => this.buttonContainerManager.scrambleButtons(), pauseTime);
+    }
+
+    /**
+     * Handles button click events.
+     * @param {*} event | The click event.
+     */
+    handleButtonClick(event) {
+        const buttonElement = event.target;
+        const clickedButton = this.buttonContainerManager.buttons.find(btn => btn.element === buttonElement);
+
+        if (clickedButton) {
+            const expectedValue = this.correctOrder[this.userClicks.length];
+            
+            if (clickedButton.value === expectedValue) {
+                this.userClicks.push(clickedButton.value);
+                clickedButton.showValue();
+
+                if (this.userClicks.length === this.correctOrder.length) {
+                    this.gameMessage.textContent = 'Excellent memory!';
+                }
+            } else {
+                this.gameMessage.textContent = 'Wrong order!';
+            }
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    new Game();
 });
