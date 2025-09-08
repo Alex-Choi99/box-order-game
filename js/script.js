@@ -63,6 +63,7 @@ class ButtonContainerManager {
         this.container = containerElement;
         this.buttons = [];
         this.inputNumber = 0;
+        this.scrambleTimers = [];
     }
 
     /**
@@ -73,39 +74,26 @@ class ButtonContainerManager {
         const colors = [];
 
         for (let i = 0; i < this.inputNumber; i++) {
-            let color;
-            color = this.getRandomColor();
+            const color = this.getRandomColor();
             colors.push(color);
         }
 
         for (let i = 0; i < this.inputNumber; i++) {
             const button = new Button(i + 1, colors[i]);
             this.buttons.push(button);
-        }
-
-        for (const button of this.buttons) {
             this.container.appendChild(button.element);
-            button.element.classList.add('color-button');
-            button.element.style.position = 'relative';
-            button.element.style.display = 'inline-block';
-            button.element.style.margin = '5px';
-            button.element.style.top = '50%';
-            button.element.style.transform = 'translateY(-50%)';
         }
     }
 
     /**
-     * Scrambles the buttons in the container. It reads the container's dimensions to ensure buttons stay within bounds.
-     * The game scrambles buttons n times in random positions within the container with a 2 second interval.
-     * Each scramble checks container dimensions to ensure buttons stay within bounds.
-     * When scramble starts, hide number values on buttons.
-     * After scrambling is complete, the buttons become clickable without number values shown.
+     * Scrambles the buttons in the container.
+     * @param {Function} callback | A callback function to be called after scrambling is complete.
      */
-    scrambleButtons() {
+    scrambleButtons(callback) {
         this.buttons.forEach(button => button.hideValue());
 
         for (let i = 0; i < this.buttons.length; i++) {
-            setTimeout(() => {
+            const timerID = setTimeout(() => {
                 const containerRect = this.container.getBoundingClientRect();
                 const buttonRect = this.buttons[i].element.getBoundingClientRect();
 
@@ -120,32 +108,21 @@ class ButtonContainerManager {
                     button.element.style.top = `${randomY}px`;
                 });
 
-            }, scrambleInterval * (i + 1));
+                if(i === this.inputNumber - 1) {
+                    callback();
+                }
+            }, scrambleInterval * (i));
+
+            this.scrambleTimers.push(timerID);
         }
+    }
 
-        // const scramble = (n) => {
-        //     if (n === 0) {
-        //         return;
-        //     }
-
-        //     const containerRect = this.container.getBoundingClientRect();
-        //     const buttonRect = this.buttons[0].element.getBoundingClientRect();
-
-        //     const maxX = containerRect.width - buttonRect.width;
-        //     const maxY = containerRect.height - buttonRect.height;
-
-        //     this.buttons.forEach(button => {
-        //         const randomX = Math.random() * maxX;
-        //         const randomY = Math.random() * maxY;
-        //         button.element.style.position = 'absolute';
-        //         button.element.style.left = `${randomX}px`;
-        //         button.element.style.top = `${randomY}px`;
-        //     });
-
-        //     setTimeout(() => scramble(n - 1), scrambleInterval);
-        // };
-
-        // scramble(this.inputNumber);
+    /**
+     * Cancels any ongoing scramble by clearing all scheduled timeouts.
+     */
+    cancelScramble() {
+        this.scrambleTimers.forEach(timerId => clearTimeout(timerId));
+        this.scrambleTimers = [];
     }
 
     /**
@@ -186,10 +163,11 @@ class Game {
         this.buttonContainer = document.getElementById('buttonContainer');
         this.errorMessage = document.getElementById('errorMessage');
         this.gameMessage = document.getElementById('gameMessage');
-        this.inputNumber = n;
+        
         this.buttonContainerManager = new ButtonContainerManager(this.buttonContainer);
         this.correctOrder = [];
         this.userClicks = [];
+        this.isGameActive = false;
 
         this.init();
     }
@@ -207,9 +185,13 @@ class Game {
      */
     startGame() {
         this.buttonContainerManager.removeAllButtons();
+        this.buttonContainerManager.cancelScramble();
+
         this.correctOrder = [];
         this.userClicks = [];
-        gameMessage.textContent = '';
+        this.gameMessage.textContent = '';
+        this.gameMessage.classList.remove('success-message', 'error-message');
+        this.isGameActive = false;
 
         const n = parseInt(this.buttonCountInput.value, 10);
 
@@ -222,9 +204,18 @@ class Game {
         errorMessage.textContent = '';
 
         this.buttonContainerManager.createButtons();
+        this.buttonContainerManager.buttons.forEach(button => button.hideValue());
+        
         this.correctOrder = this.buttonContainerManager.buttons.map(button => button.value);
         const pauseTime = n * pauseTimeMultiplier;
-        setTimeout(() => this.buttonContainerManager.scrambleButtons(), pauseTime);
+
+        const initialTimerID = setTimeout(() => {
+            this.buttonContainerManager.scrambleButtons(() => {
+                this.isGameActive = true;
+            });
+        }, pauseTime);
+
+        this.buttonContainerManager.scrambleTimers.push(initialTimerID);
     }
 
     /**
@@ -232,6 +223,10 @@ class Game {
      * @param {*} event | The click event.
      */
     handleButtonClick(event) {
+        if (!this.isGameActive) {
+            return;
+        }
+
         const buttonElement = event.target;
         const clickedButton = this.buttonContainerManager.buttons.find(btn => btn.element === buttonElement);
 
@@ -241,12 +236,23 @@ class Game {
             if (clickedButton.value === expectedValue) {
                 this.userClicks.push(clickedButton.value);
                 clickedButton.showValue();
+                clickedButton.element.classList.add('correct');
+                clickedButton.element.style.cursor = 'default';
 
                 if (this.userClicks.length === this.correctOrder.length) {
-                    this.gameMessage.textContent = 'Excellent memory!';
+                    this.isGameActive = false;
+                    this.gameMessage.textContent = messages.EXCELLENT_MEMORY_MESSAGE;
+                    this.gameMessage.classList.add('success-message');
                 }
             } else {
-                this.gameMessage.textContent = 'Wrong order!';
+                this.isGameActive = false;
+                this.gameMessage.textContent = messages.WRONG_ORDER_MESSAGE;
+                this.gameMessage.classList.add('error-message');
+
+                this.buttonContainerManager.buttons.forEach(button => {
+                    button.showValue();
+                    button.element.classList.add('incorrect');
+                });
             }
         }
     }

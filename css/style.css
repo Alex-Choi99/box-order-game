@@ -18,12 +18,21 @@ main {
 
 .color-button {
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
     text-align: center;
     align-items: center;
     justify-content: center;
+    border: 2px solid black;
     border-radius: 5px;
     height: 5em;
     width: 10em;
+    user-select: none;
+}
+
+.color-button.hidden-value {
+    color: transparent;
+    cursor: pointer;
 }
 
 footer {
@@ -68,7 +77,6 @@ footer {
 .game-message {
     font-size: 1.25rem;
     font-weight: bold;
-    min-height: 1.5rem;
 }
 
 #buttonContainer {
@@ -77,9 +85,31 @@ footer {
     width: 100vw;
     border: 2px solid black;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.color-button.hidden-value {
-    color: transparent;
-    cursor: pointer;
+#gameMessage.success-message {
+    font-size: 1.25rem;
+    color: #22c55e;
+    font-weight: bold;
+}
+
+#gameMessage.error-message {
+    font-size: 1.25rem;
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.color-button.correct {
+    background-color: #22c55e;
+    color: white !important;
+}
+
+.color-button.incorrect {
+    background-color: #ef4444;
+    color: white !important;
 }
