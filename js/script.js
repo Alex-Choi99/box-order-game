@@ -1,6 +1,10 @@
 /**
  * Author: Alex Choi
  * Student ID: A01323994
+ *
+ * This code was assisted by Gemini.
+ * Most core logic and design ideas were suggested by Gemini
+ * and I developed the code based on those suggestions to ensure requirements.
  */
 
 import { messages } from '../lang/messages/en/user.js';
@@ -49,6 +53,22 @@ class Button {
     showValue() {
         this.element.classList.remove('hidden-value');
     }
+
+    /**
+     * Disables the button by adding the 'disabled' attribute and changing the cursor style.
+     */
+    disable() {
+        this.element.setAttribute('disabled', 'true');
+        this.element.style.cursor = 'not-allowed';
+    }
+
+    /**
+     * Enables the button by removing the 'disabled' attribute and resetting the cursor style.
+     */
+    enable() {
+        this.element.removeAttribute('disabled');
+        this.element.style.cursor = 'pointer';
+    }
 }
 
 /**
@@ -82,6 +102,7 @@ class ButtonContainerManager {
             const button = new Button(i + 1, colors[i]);
             this.buttons.push(button);
             this.container.appendChild(button.element);
+            button.disable();
         }
     }
 
@@ -90,7 +111,6 @@ class ButtonContainerManager {
      * @param {Function} callback | A callback function to be called after scrambling is complete.
      */
     scrambleButtons(callback) {
-        this.buttons.forEach(button => button.hideValue());
 
         for (let i = 0; i < this.buttons.length; i++) {
             const timerID = setTimeout(() => {
@@ -147,6 +167,7 @@ class ButtonContainerManager {
         this.buttons = [];
         this.container.innerHTML = '';
     }
+
 }
 
 /**
@@ -204,14 +225,15 @@ class Game {
         errorMessage.textContent = '';
 
         this.buttonContainerManager.createButtons();
-        this.buttonContainerManager.buttons.forEach(button => button.hideValue());
         
         this.correctOrder = this.buttonContainerManager.buttons.map(button => button.value);
         const pauseTime = n * pauseTimeMultiplier;
 
         const initialTimerID = setTimeout(() => {
             this.buttonContainerManager.scrambleButtons(() => {
+                this.buttonContainerManager.buttons.forEach(button => button.enable());
                 this.isGameActive = true;
+                this.buttonContainerManager.buttons.forEach(button => button.hideValue());
             });
         }, pauseTime);
 
